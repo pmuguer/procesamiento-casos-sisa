@@ -54,15 +54,25 @@ def generate_csv_empadronamiento(columns_dict, output_filename):
         csv_dict_writer.writeheader()
 
         for i in range(INPUT_SPREADSHEET_MAX_ROWS):
+            # Obtengo los datos completos de la fila porque hay filas con el documento
+            # vacío que, en caso de que se procese sólo ese dato, se interpretan erróneamente
+            # como el fin del archivo Excel
             row = {}
-            documento = columns_dict.get('nro_documento')
-            if documento:
-                row['documento_numero'] = stringify_cell(documento[i])
-                row['sexo'] = ''
+            for column_name in OUTPUT_CSV_COLUMNS:
+                openpyxl_column = columns_dict.get(column_name)
+                if openpyxl_column:
+                    openpyxl_cell = openpyxl_column[i]
+                    row[column_name] = stringify_cell(openpyxl_cell)
 
             # Si se encuentra una fila sin datos se considera que ya no hay
             # más filas para procesar
             if is_empty(row):
                 break
 
-            csv_dict_writer.writerow(row)
+            output_row = {}
+            documento = columns_dict.get('nro_documento')
+            if documento:
+                output_row['documento_numero'] = stringify_cell(documento[i])
+                output_row['sexo'] = ''
+
+            csv_dict_writer.writerow(output_row)
